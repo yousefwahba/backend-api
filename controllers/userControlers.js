@@ -70,9 +70,19 @@ const loginUser = asyncHandler(async (req, res) => {
       _id: userExists._id,
       name: userExists.name,
       email: userExists.email,
-      token: generateToken(user._id),
     });
   }
+});
+//@reoute get /api/users/me
+//@desc register user
+//@access private
+const getMe = asyncHandler(async (req, res) => {
+  const user = {
+    id: req.user._id,
+    name: req.user.name,
+    email: req.user.email,
+  };
+  res.json(user);
 });
 
 //generate token
@@ -86,4 +96,5 @@ const generateToken = (id) => {
 module.exports = {
   registerUser,
   loginUser,
+  getMe,
 };
