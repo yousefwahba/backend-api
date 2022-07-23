@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcryptjs");
 const User = require("../model/userModel");
+const jwt = require("jsonwebtoken");
 //@reoute POST /api/users/
 //@desc register user
 //@access public
@@ -34,6 +35,7 @@ const registerUser = asyncHandler(async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      token: generateToken(user._id),
     });
   } else {
     res.status(400);
@@ -44,7 +46,41 @@ const registerUser = asyncHandler(async (req, res) => {
 //@reoute login /api/users/login
 //@desc login user
 //@access public
-const loginUser = asyncHandler(async (req, res) => {});
+const loginUser = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+
+  //validation
+  if (!email || !password) {
+    res.status(400);
+    throw new Error("please fill all fields");
+  }
+  //find if user exists
+  const userExists = await User.findOne({ email });
+  if (!userExists) {
+    res.status(400);
+    throw new Error("User does not exist");
+  }
+  //check password
+  const isMatch = await bcrypt.compare(password, userExists.password);
+  if (!isMatch) {
+    res.status(400);
+    throw new Error("Invalid password");
+  } else {
+    res.json({
+      _id: userExists._id,
+      name: userExists.name,
+      email: userExists.email,
+      token: generateToken(user._id),
+    });
+  }
+});
+
+//generate token
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: "30d",
+  });
+};
 
 //export constroller
 module.exports = {
